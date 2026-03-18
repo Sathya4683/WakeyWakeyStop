@@ -1,11 +1,24 @@
 import { useThemeStore } from "@/store/themeStore";
+import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
 import { StatusBar } from "react-native";
 import "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const { theme, isDark } = useThemeStore();
+
+  // 🔥 Control Android bottom navigation bar
+  useEffect(() => {
+    if (isDark) {
+      // NavigationBar.setBackgroundColorAsync("#000000"); // dark bg
+      NavigationBar.setButtonStyleAsync("light"); // white icons
+    } else {
+      // NavigationBar.setBackgroundColorAsync("#ffffff"); // light bg
+      NavigationBar.setButtonStyleAsync("dark"); // dark icons
+    }
+  }, [isDark]);
 
   return (
     <SafeAreaProvider>
@@ -22,6 +35,7 @@ export default function RootLayout() {
           {/* Main app */}
           <Stack.Screen name="(drawer)" />
 
+          {/* Modals */}
           <Stack.Screen
             name="helpMaps"
             options={{

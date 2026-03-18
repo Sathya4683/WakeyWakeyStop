@@ -9,9 +9,23 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to alert you before your stop.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use background location to notify you even when the app is closed."
+      },
+      "bundleIdentifier": "com.sathya4683.WakeyWakeyStop"
     },
     "android": {
+      "package": "com.sathya4683.WakeyWakeyStop",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "POST_NOTIFICATIONS",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,8 +33,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "package": "com.sathya4683.WakeyWakeyStop"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
@@ -28,6 +41,8 @@
     },
     "plugins": [
       "expo-router",
+      "expo-location",
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
@@ -44,6 +59,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ace0a152-98bf-4046-a3a3-ada1603fd8d6"
+      }
     }
   }
 }
