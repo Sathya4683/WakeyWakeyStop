@@ -1,11 +1,18 @@
 import { useThemeStore } from "@/store/themeStore";
+import { nerdFontAssets } from "@/theme/fonts";
+import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import { StatusBar } from "react-native";
 import "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function RootLayout() {
-  const { theme } = useThemeStore();
+  const { theme, isDark } = useThemeStore();
+  const [fontsLoaded] = useFonts(nerdFontAssets);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>
@@ -14,8 +21,8 @@ export default function RootLayout() {
         edges={["top", "bottom"]}
       >
         <StatusBar
-          barStyle="dark-content" // 🔥 dark icons
-          backgroundColor="#ffffff"
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={theme.colors.bg}
         />
 
         <Slot />

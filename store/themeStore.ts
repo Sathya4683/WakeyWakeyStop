@@ -1,23 +1,30 @@
 // store/themeStore.ts
 
-import { darkTheme, lightTheme } from "@/theme/theme";
+import { type AppTheme, darkTheme, lightTheme } from "@/theme/theme";
 import { create } from "zustand";
 
-type ThemeType = typeof lightTheme;
+type ThemeMode = "light" | "dark";
 
 type ThemeStore = {
-  theme: ThemeType;
+  theme: AppTheme;
+  mode: ThemeMode;
   isDark: boolean;
   toggleTheme: () => void;
 };
 
 export const useThemeStore = create<ThemeStore>((set) => ({
   theme: lightTheme,
+  mode: "light",
   isDark: false,
 
   toggleTheme: () =>
-    set((state) => ({
-      isDark: !state.isDark,
-      theme: state.isDark ? lightTheme : darkTheme,
-    })),
+    set((state) => {
+      const nextIsDark = !state.isDark;
+
+      return {
+        isDark: nextIsDark,
+        mode: nextIsDark ? "dark" : "light",
+        theme: nextIsDark ? darkTheme : lightTheme,
+      };
+    }),
 }));

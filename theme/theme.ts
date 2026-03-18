@@ -1,23 +1,57 @@
 // theme/theme.ts
 
-export const lightTheme = {
+export type ThemeColors = {
+  bg: string;
+  surface: string;
+  surfaceAlt: string;
+  primary: string;
+  onPrimary: string;
+  accent: string;
+  onAccent: string;
+  accentAlt: string;
+  onAccentAlt: string;
+  text: string;
+  mutedText: string;
+  border: string;
+  inactive: string;
+};
+
+export type AppTheme = {
+  colors: ThemeColors;
+};
+
+export const lightTheme: AppTheme = {
   colors: {
-    bg: "#F7F7F7", // soft neutral background
-    surface: "#FFFFFF", // cards / tabs
-    primary: "#111111", // header / strong elements (black)
-    accent: "#FF3D00", // alert color (alarm vibe)
-    text: "#111111",
-    border: "#E5E5E5", // subtle borders (not harsh)
+    bg: "#EFF8FF",
+    surface: "#FFFFFF",
+    surfaceAlt: "#DFF4FF",
+    primary: "#0A1428",
+    onPrimary: "#F5FAFF",
+    accent: "#00D1FF",
+    onAccent: "#00161D",
+    accentAlt: "#C9FF2F",
+    onAccentAlt: "#1A1F00",
+    text: "#0A1428",
+    mutedText: "#3B4B66",
+    border: "#0A1428",
+    inactive: "#A9BCD7",
   },
 };
 
-export const darkTheme = {
+export const darkTheme: AppTheme = {
   colors: {
-    bg: "#0F0F10", // deep dark
-    surface: "#1A1A1C",
-    primary: "#FFFFFF", // inverted header
-    accent: "#FF453A", // softer red for dark
-    text: "#FFFFFF",
-    border: "#2A2A2D", // subtle dark borders
+    bg: "#0A1322",
+    surface: "#121E34",
+    surfaceAlt: "#1D2C47",
+    primary: "#F2F8FF",
+    onPrimary: "#09111F",
+    accent: "#38E6FF",
+    onAccent: "#07212A",
+    accentAlt: "#D9FF5C",
+    onAccentAlt: "#1C2500",
+    text: "#F2F8FF",
+    mutedText: "#9CB2D2",
+    border: "#F2F8FF",
+    inactive: "#4C5D7D",
   },
 };

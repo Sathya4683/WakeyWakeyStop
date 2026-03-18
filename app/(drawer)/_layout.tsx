@@ -1,4 +1,5 @@
 import { useThemeStore } from "@/store/themeStore";
+import { createNeoBrutalNavStyles, navSizes, spacing } from "@/theme/styles";
 import { Ionicons } from "@expo/vector-icons";
 import {
   DrawerContentScrollView,
@@ -6,33 +7,36 @@ import {
 } from "@react-navigation/drawer";
 import { useRouter } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { Pressable, Switch, Text, View } from "react-native";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 export default function DrawerLayout() {
   const { theme, isDark, toggleTheme } = useThemeStore();
   const router = useRouter();
+  const navStyles = useMemo(() => createNeoBrutalNavStyles(theme), [theme]);
 
   return (
     <Drawer
       screenOptions={{
-        // 🔻 HEADER
-        headerStyle: {
-          backgroundColor: theme.colors.primary,
-          borderBottomWidth: 0.5,
-        },
+        headerStyle: navStyles.headerStyle,
+        headerShadowVisible: false,
 
         headerTitle: "",
 
-        // 🔥 LEFT: Home icon only
         headerLeft: () => (
           <Pressable
             onPress={() => router.push("/maps")}
-            style={{
-              marginLeft: 14,
-              padding: 6,
-            }}
+            style={({ pressed }) => [
+              navStyles.headerIconButton,
+              { backgroundColor: theme.colors.accentAlt },
+              pressed && localStyles.pressed,
+            ]}
           >
-            <Ionicons name="home-outline" size={22} color={theme.colors.bg} />
+            <Ionicons
+              name="home-outline"
+              size={navSizes.headerIcon}
+              color={theme.colors.onAccentAlt}
+            />
           </Pressable>
         ),
 
@@ -40,54 +44,41 @@ export default function DrawerLayout() {
 
         headerStatusBarHeight: 0,
 
-        // 🔻 DRAWER STYLE
-        drawerStyle: {
-          backgroundColor: theme.colors.bg,
-        },
-
-        drawerLabelStyle: {
-          fontWeight: "600",
-          fontSize: 14,
-        },
-
-        drawerActiveTintColor: theme.colors.text,
-        drawerInactiveTintColor: "#888",
+        drawerStyle: navStyles.drawerStyle,
+        drawerLabelStyle: navStyles.drawerLabelStyle,
+        drawerItemStyle: navStyles.drawerItemStyle,
+        drawerActiveBackgroundColor: theme.colors.accentAlt,
+        drawerInactiveBackgroundColor: theme.colors.surface,
+        drawerActiveTintColor: theme.colors.onAccentAlt,
+        drawerInactiveTintColor: theme.colors.text,
       }}
-      // 🔻 Drawer content
       drawerContent={(props) => (
-        <View style={{ flex: 1, backgroundColor: theme.colors.bg }}>
-          {/* Drawer items */}
-          <DrawerContentScrollView {...props}>
+        <View style={[localStyles.drawerContent, { backgroundColor: theme.colors.bg }]}>
+          <DrawerContentScrollView
+            {...props}
+            contentContainerStyle={localStyles.drawerScrollContent}
+          >
             <DrawerItemList {...props} />
           </DrawerContentScrollView>
 
-          {/* Theme toggle */}
-          <View
-            style={{
-              padding: 16,
-              borderTopWidth: 0.5,
-              borderTopColor: "#ddd",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "600",
-                color: theme.colors.text,
-              }}
-            >
+          <View style={navStyles.drawerFooter}>
+            <Text style={navStyles.drawerFooterLabel}>
               Dark Mode
             </Text>
 
-            <Switch value={isDark} onValueChange={toggleTheme} />
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{
+                false: theme.colors.inactive,
+                true: theme.colors.accent,
+              }}
+              thumbColor={theme.colors.surface}
+            />
           </View>
         </View>
       )}
     >
-      {/* Tabs (hidden) */}
       <Drawer.Screen
         name="(tabs)"
         options={{
@@ -96,7 +87,6 @@ export default function DrawerLayout() {
         }}
       />
 
-      {/* Only required screens */}
       <Drawer.Screen
         name="settings"
         options={{
@@ -104,7 +94,7 @@ export default function DrawerLayout() {
           drawerIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "settings" : "settings-outline"}
-              size={22}
+              size={navSizes.headerIcon}
               color={color}
             />
           ),
@@ -119,7 +109,7 @@ export default function DrawerLayout() {
               name={
                 focused ? "information-circle" : "information-circle-outline"
               }
-              size={22}
+              size={navSizes.headerIcon}
               color={color}
             />
           ),
@@ -141,3 +131,18 @@ export default function DrawerLayout() {
     </Drawer>
   );
 }
+
+const localStyles = StyleSheet.create({
+  drawerContent: {
+    flex: 1,
+  },
+  drawerScrollContent: {
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  pressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+});

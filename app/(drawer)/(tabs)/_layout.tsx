@@ -1,37 +1,44 @@
+import CustomTabBar from "@/components/CustomTabBar";
 import { useThemeStore } from "@/store/themeStore";
+import { createNeoBrutalNavStyles, navSizes } from "@/theme/styles";
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Tabs, useRouter } from "expo-router";
-import { Pressable } from "react-native";
+import { useMemo } from "react";
+import { Pressable, StyleSheet } from "react-native";
 
 export default function TabsLayout() {
   const { theme } = useThemeStore();
   const navigation = useNavigation();
   const router = useRouter();
+  const navStyles = useMemo(() => createNeoBrutalNavStyles(theme), [theme]);
 
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={({ route }) => ({
-        // 🔻 HEADER
-        headerStyle: {
-          backgroundColor: theme.colors.primary,
-          borderBottomWidth: 0.5,
-          borderBottomColor: "#ddd",
-        },
+        headerStyle: navStyles.headerStyle,
+        headerShadowVisible: false,
 
         headerTitle: "",
 
-        // 🔻 LEFT (menu)
         headerLeft: () => (
           <Pressable
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-            style={{ marginLeft: 14, padding: 6 }}
+            style={({ pressed }) => [
+              navStyles.headerIconButton,
+              { backgroundColor: theme.colors.accent },
+              pressed && localStyles.pressed,
+            ]}
           >
-            <Ionicons name="menu" size={22} color={theme.colors.bg} />
+            <Ionicons
+              name="menu"
+              size={navSizes.headerIcon}
+              color={theme.colors.onAccent}
+            />
           </Pressable>
         ),
 
-        // 🔥 RIGHT (context-aware help)
         headerRight: () => (
           <Pressable
             onPress={() => {
@@ -41,34 +48,21 @@ export default function TabsLayout() {
                 router.push("/help/alarms");
               }
             }}
-            style={{ marginRight: 14, padding: 6 }}
+            style={({ pressed }) => [
+              navStyles.headerIconButton,
+              { backgroundColor: theme.colors.accentAlt },
+              pressed && localStyles.pressed,
+            ]}
           >
             <Ionicons
               name="help-circle-outline"
-              size={22}
-              color={theme.colors.bg}
+              size={navSizes.headerIcon}
+              color={theme.colors.onAccentAlt}
             />
           </Pressable>
         ),
 
         headerStatusBarHeight: 0,
-
-        // 🔻 TABS
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          height: 50,
-          borderTopWidth: 0.5,
-          borderTopColor: "#ddd",
-          elevation: 0,
-        },
-
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "500",
-        },
-
-        tabBarActiveTintColor: theme.colors.text,
-        tabBarInactiveTintColor: "#888",
       })}
     >
       <Tabs.Screen
@@ -78,7 +72,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "map" : "map-outline"}
-              size={22}
+              size={navSizes.tabIcon}
               color={color}
             />
           ),
@@ -92,7 +86,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "alarm" : "alarm-outline"}
-              size={22}
+              size={navSizes.tabIcon}
               color={color}
             />
           ),
@@ -101,3 +95,11 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const localStyles = StyleSheet.create({
+  pressed: {
+    transform: [{ translateX: 2 }, { translateY: 2 }],
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+});
