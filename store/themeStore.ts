@@ -12,7 +12,7 @@ type ThemeStore = {
 };
 
 export const useThemeStore = create<ThemeStore>((set) => ({
-  theme: lightTheme,
+  theme: lightTheme, //darkTheme
   isDark: false,
 
   toggleTheme: () =>

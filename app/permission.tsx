@@ -14,11 +14,8 @@ export default function PermissionScreen() {
     const loc1 = await Location.requestForegroundPermissionsAsync();
     const loc2 = await Location.requestBackgroundPermissionsAsync();
     const notif = await Notifications.requestPermissionsAsync();
-
-    const ok =
-      loc1.status === "granted" &&
-      loc2.status === "granted" &&
-      notif.status === "granted";
+    const ok = loc1.status === "granted" && loc2.status === "granted";
+    notif.status === "granted";
 
     if (ok) {
       router.replace("/(drawer)/(tabs)/maps");

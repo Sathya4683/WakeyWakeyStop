@@ -16,7 +16,7 @@ export default function TabsLayout() {
         headerStyle: {
           backgroundColor: theme.colors.bg,
           borderBottomWidth: 0.5,
-          borderBottomColor: "#ddd",
+          borderBottomColor: theme.colors.border,
         },
 
         headerTitle: "",
@@ -55,10 +55,10 @@ export default function TabsLayout() {
 
         // 🔻 TABS
         tabBarStyle: {
-          backgroundColor: theme.colors.surface,
+          backgroundColor: theme.colors.bg,
           height: 50,
           borderTopWidth: 0.5,
-          borderTopColor: "#ddd",
+          borderTopColor: theme.colors.border,
           elevation: 0,
         },
 
