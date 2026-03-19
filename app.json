@@ -8,59 +8,82 @@
     "scheme": "wakeywakeystop",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.sathya4683.WakeyWakeyStop",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We use your location to alert you before your stop.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "We use background location to notify you even when the app is closed."
-      },
-      "bundleIdentifier": "com.sathya4683.WakeyWakeyStop"
+      }
     },
+
     "android": {
       "package": "com.sathya4683.WakeyWakeyStop",
+
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBikBB9bKoqaNf064rlwwXcABATduDn_Bs"
+        }
+      },
+
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
         "POST_NOTIFICATIONS",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "FOREGROUND_SERVICE"
       ],
+
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
-      "expo-location",
-      "expo-notifications",
+
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "This app needs location access to alert you when you arrive at your destination.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+
+      "expo-font",
+
       [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ff000",
+          "backgroundColor": "#ff0000",
           "dark": {
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "expo-font"
+      ]
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
+
     "extra": {
       "router": {},
       "eas": {
@@ -69,3 +92,6 @@
     }
   }
 }
+
+
+
