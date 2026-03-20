@@ -1,72 +1,404 @@
-import { useThemeStore } from "@/store/themeStore";
+import { useTrackingStore } from "@/store/trackingStore";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import { Animated, Pressable, Text, View } from "react-native";
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Open Maps",
+    description: "Navigate to the Maps tab from the bottom navigation bar.",
+    icon: "🗺️",
+  },
+  {
+    number: "02",
+    title: "Pick Destination",
+    description: "Tap any stop on the map or search by name to select it.",
+    icon: "📍",
+  },
+  {
+    number: "03",
+    title: "Confirm Location",
+    description: "Review the stop details and confirm your destination.",
+    icon: "✅",
+  },
+  {
+    number: "04",
+    title: "Start Tracking",
+    description: "Hit Track and get live updates as you approach your stop.",
+    icon: "🚦",
+  },
+];
+
+// ── Neo-brutalist tokens ──────────────────────────────────────────────────
+const B = {
+  bg: "#eaf4ff",
+  surface: "#ffffff",
+  accent: "#00aaff",
+  black: "#0a0a0a",
+  muted: "#6b6b6b",
+  border: "#0a0a0a",
+  error: "#ff3b30",
+  success: "#00c566",
+};
 
 export default function HelpMaps() {
-  const { theme } = useThemeStore();
   const router = useRouter();
-
-  const steps = [
-    "Step 1: Open Maps tab",
-    "Step 2: Select your destination",
-    "Step 3: Confirm location",
-    "Step 4: Start tracking",
-  ];
+  const { status, destination, distanceMeters } = useTrackingStore();
 
   const [index, setIndex] = useState(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const textColor = { color: theme.colors.text };
+  const animateSlide = (direction: "next" | "prev", newIndex: number) => {
+    Animated.sequence([
+      Animated.timing(slideAnim, {
+        toValue: direction === "next" ? -40 : 40,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    setIndex(newIndex);
+  };
+
+  const goNext = () => {
+    if (index < STEPS.length - 1) animateSlide("next", index + 1);
+  };
+  const goPrev = () => {
+    if (index > 0) animateSlide("prev", index - 1);
+  };
+
+  const step = STEPS[index];
+
+  const statusColor =
+    status === "tracking" ? B.success : status === "error" ? B.error : B.muted;
+
+  const statusLabel =
+    status === "tracking"
+      ? "● TRACKING"
+      : status === "error"
+        ? "✕ ERROR"
+        : "○ IDLE";
+
+  // Format distance nicely
+  const distanceText =
+    distanceMeters !== null
+      ? distanceMeters >= 1000
+        ? `${(distanceMeters / 1000).toFixed(2)} km`
+        : `${Math.round(distanceMeters)} m`
+      : null;
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.4)",
+        backgroundColor: "rgba(0,0,0,0.55)",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
+      {/* Card — hard shadow, no border-radius */}
       <View
         style={{
-          width: "85%",
-          backgroundColor: theme.colors.surface,
-          padding: 20,
+          width: "88%",
+          backgroundColor: B.surface,
           borderWidth: 3,
-          borderColor: theme.colors.border,
+          borderColor: B.border,
+          shadowColor: B.black,
+          shadowOffset: { width: 6, height: 6 },
+          shadowOpacity: 1,
+          shadowRadius: 0,
+          elevation: 8,
         }}
       >
-        <Text style={[textColor, { fontWeight: "900", fontSize: 18 }]}>
-          Maps Help
-        </Text>
+        {/* Header bar */}
+        <View
+          style={{
+            backgroundColor: B.accent,
+            borderBottomWidth: 3,
+            borderBottomColor: B.border,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text
+            style={{
+              color: B.black,
+              fontSize: 13,
+              fontWeight: "900",
+              letterSpacing: 3,
+            }}
+          >
+            MAPS GUIDE
+          </Text>
 
-        <Text style={[textColor, { marginTop: 20 }]}>{steps[index]}</Text>
+          {/* Live status from Zustand */}
+          <Text
+            style={{
+              color: statusColor,
+              fontSize: 9,
+              fontWeight: "800",
+              letterSpacing: 1.5,
+              backgroundColor: B.black,
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+            }}
+          >
+            {statusLabel}
+          </Text>
+        </View>
 
-        {/* Controls */}
+        {/* Destination + distance banner */}
+        {destination && (
+          <View
+            style={{
+              backgroundColor: B.bg,
+              borderBottomWidth: 2,
+              borderBottomColor: B.border,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                flex: 1,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 9,
+                  color: B.muted,
+                  fontWeight: "900",
+                  letterSpacing: 2,
+                }}
+              >
+                DEST
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: B.black,
+                  fontWeight: "800",
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                {destination.label
+                  ? destination.label.toUpperCase()
+                  : `${destination.lat.toFixed(4)}, ${destination.lon.toFixed(4)}`}
+              </Text>
+            </View>
+
+            {/* Distance — only shown while tracking */}
+            {distanceText && (
+              <View
+                style={{
+                  backgroundColor: B.black,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  marginLeft: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: B.accent,
+                    fontSize: 11,
+                    fontWeight: "900",
+                    letterSpacing: 1,
+                  }}
+                >
+                  {distanceText}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Step content */}
+        <Animated.View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 24,
+            paddingBottom: 16,
+            transform: [{ translateX: slideAnim }],
+          }}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 14 }}
+          >
+            {/* Icon tile */}
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                backgroundColor: B.bg,
+                borderWidth: 3,
+                borderColor: B.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 22 }}>{step.icon}</Text>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              {/* Step badge */}
+              <View
+                style={{
+                  alignSelf: "flex-start",
+                  backgroundColor: B.black,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  marginBottom: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    color: B.accent,
+                    fontSize: 9,
+                    fontWeight: "900",
+                    letterSpacing: 3,
+                  }}
+                >
+                  STEP {step.number}
+                </Text>
+              </View>
+
+              <Text
+                style={{
+                  color: B.black,
+                  fontSize: 20,
+                  fontWeight: "900",
+                  letterSpacing: -0.5,
+                }}
+              >
+                {step.title}
+              </Text>
+            </View>
+          </View>
+
+          <Text
+            style={{
+              color: B.muted,
+              fontSize: 13,
+              lineHeight: 20,
+              marginTop: 16,
+              fontWeight: "500",
+            }}
+          >
+            {step.description}
+          </Text>
+        </Animated.View>
+
+        {/* Progress dots */}
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 20,
+            justifyContent: "center",
+            gap: 6,
+            paddingBottom: 18,
           }}
         >
-          <Pressable onPress={() => setIndex((i) => Math.max(i - 1, 0))}>
-            <Text style={textColor}>Prev</Text>
+          {STEPS.map((_, i) => (
+            <Pressable key={i} onPress={() => setIndex(i)}>
+              <View
+                style={{
+                  width: i === index ? 24 : 8,
+                  height: 8,
+                  backgroundColor: i === index ? B.accent : "#d0d0d0",
+                  borderWidth: 2,
+                  borderColor: B.border,
+                }}
+              />
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Nav row */}
+        <View
+          style={{
+            flexDirection: "row",
+            borderTopWidth: 3,
+            borderTopColor: B.border,
+          }}
+        >
+          <Pressable
+            onPress={goPrev}
+            disabled={index === 0}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: 14,
+              alignItems: "center",
+              backgroundColor: pressed ? "#ebebeb" : B.surface,
+              borderRightWidth: 3,
+              borderRightColor: B.border,
+              opacity: index === 0 ? 0.3 : 1,
+            })}
+          >
+            <Text
+              style={{
+                color: B.black,
+                fontSize: 11,
+                fontWeight: "900",
+                letterSpacing: 2,
+              }}
+            >
+              ← PREV
+            </Text>
           </Pressable>
 
           <Pressable
-            onPress={() => setIndex((i) => Math.min(i + 1, steps.length - 1))}
+            onPress={() => router.back()}
+            style={({ pressed }) => ({
+              paddingVertical: 14,
+              paddingHorizontal: 18,
+              alignItems: "center",
+              backgroundColor: pressed ? B.black : B.surface,
+              borderRightWidth: 3,
+              borderRightColor: B.border,
+            })}
           >
-            <Text style={textColor}>Next</Text>
+            <Text style={{ color: B.muted, fontSize: 13, fontWeight: "900" }}>
+              ✕
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={goNext}
+            disabled={index === STEPS.length - 1}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: 14,
+              alignItems: "center",
+              backgroundColor: pressed ? B.accent : B.surface,
+              opacity: index === STEPS.length - 1 ? 0.3 : 1,
+            })}
+          >
+            <Text
+              style={{
+                color: B.black,
+                fontSize: 11,
+                fontWeight: "900",
+                letterSpacing: 2,
+              }}
+            >
+              NEXT →
+            </Text>
           </Pressable>
         </View>
-
-        <Pressable
-          onPress={() => router.back()}
-          style={{ marginTop: 20, alignItems: "center" }}
-        >
-          <Text style={[textColor, { fontWeight: "800" }]}>Close</Text>
-        </Pressable>
       </View>
     </View>
   );
