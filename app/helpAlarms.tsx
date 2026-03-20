@@ -1,90 +1,313 @@
 import { useThemeStore } from "@/store/themeStore";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  Animated,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Open Alarms",
+    description: "Switch to the Alarm tab using the bottom navigation bar.",
+    icon: "🔔",
+  },
+  {
+    number: "02",
+    title: "Set Your Stop",
+    description: "Choose the transit stop where you want to be alerted.",
+    icon: "🚉",
+  },
+  {
+    number: "03",
+    title: "Choose Schedule",
+    description: "Pick a one-time or recurring schedule for your alarm.",
+    icon: "📅",
+  },
+  {
+    number: "04",
+    title: "Enable Alarm",
+    description:
+      "Toggle the alarm on and you'll be notified before you arrive.",
+    icon: "⚡",
+  },
+];
 
 export default function HelpAlarms() {
   const { theme } = useThemeStore();
   const router = useRouter();
-
-  const steps = [
-    "Step 1: Open Alarm tab",
-    "Step 2: Set your stop",
-    "Step 3: Choose schedule",
-    "Step 4: Enable alarm",
-  ];
-
   const [index, setIndex] = useState(0);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const { width } = useWindowDimensions();
+
+  const animateSlide = (direction: "next" | "prev", newIndex: number) => {
+    const toValue = direction === "next" ? -30 : 30;
+    Animated.sequence([
+      Animated.timing(slideAnim, {
+        toValue,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    setIndex(newIndex);
+  };
+
+  const goNext = () => {
+    if (index < STEPS.length - 1) animateSlide("next", index + 1);
+  };
+
+  const goPrev = () => {
+    if (index > 0) animateSlide("prev", index - 1);
+  };
+
+  const step = STEPS[index];
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.4)",
+        backgroundColor: "rgba(0,0,0,0.65)",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
+      {/* Card */}
       <View
         style={{
-          width: "85%",
-          backgroundColor: theme.colors.surface,
-          padding: 20,
-          borderWidth: 3,
-          borderColor: theme.colors.border,
+          width: "88%",
+          backgroundColor: "#0d0d14",
+          borderRadius: 2,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: "#2a2a3a",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 12 },
+          shadowOpacity: 0.6,
+          shadowRadius: 24,
+          elevation: 20,
         }}
       >
-        <Text
-          style={{
-            fontWeight: "900",
-            fontSize: 18,
-            color: theme.colors.text,
-          }}
-        >
-          Alarm Help
-        </Text>
+        {/* Top accent bar — amber for alarms */}
+        <View style={{ height: 3, backgroundColor: "#ffb800" }} />
 
-        <Text
-          style={{
-            marginTop: 20,
-            color: theme.colors.text,
-          }}
-        >
-          {steps[index]}
-        </Text>
-
-        {/* Controls */}
+        {/* Header */}
         <View
           style={{
             flexDirection: "row",
+            alignItems: "center",
             justifyContent: "space-between",
-            marginTop: 20,
+            paddingHorizontal: 20,
+            paddingTop: 18,
+            paddingBottom: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: "#1e1e2e",
           }}
-        >
-          <Pressable onPress={() => setIndex((i) => Math.max(i - 1, 0))}>
-            <Text style={{ color: theme.colors.text }}>Prev</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setIndex((i) => Math.min(i + 1, steps.length - 1))}
-          >
-            <Text style={{ color: theme.colors.text }}>Next</Text>
-          </Pressable>
-        </View>
-
-        <Pressable
-          onPress={() => router.back()}
-          style={{ marginTop: 20, alignItems: "center" }}
         >
           <Text
             style={{
+              color: "#ffb800",
+              fontSize: 10,
               fontWeight: "800",
-              color: theme.colors.text,
+              letterSpacing: 3,
+              textTransform: "uppercase",
             }}
           >
-            Close
+            Alarm Guide
           </Text>
-        </Pressable>
+          <Text
+            style={{
+              color: "#3a3a5a",
+              fontSize: 10,
+              fontWeight: "700",
+              letterSpacing: 2,
+            }}
+          >
+            {index + 1} / {STEPS.length}
+          </Text>
+        </View>
+
+        {/* Step content */}
+        <Animated.View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 28,
+            paddingBottom: 20,
+            transform: [{ translateX: slideAnim }],
+          }}
+        >
+          {/* Icon + step number row */}
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 14 }}
+          >
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                backgroundColor: "#111122",
+                borderRadius: 2,
+                borderWidth: 1,
+                borderColor: "#2a2a3a",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text style={{ fontSize: 24 }}>{step.icon}</Text>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: "#ffb800",
+                  fontSize: 11,
+                  fontWeight: "800",
+                  letterSpacing: 2,
+                  marginBottom: 4,
+                }}
+              >
+                STEP {step.number}
+              </Text>
+              <Text
+                style={{
+                  color: "#ffffff",
+                  fontSize: 20,
+                  fontWeight: "800",
+                  letterSpacing: -0.3,
+                  lineHeight: 24,
+                }}
+              >
+                {step.title}
+              </Text>
+            </View>
+          </View>
+
+          {/* Description */}
+          <Text
+            style={{
+              color: "#7a7a9a",
+              fontSize: 13,
+              lineHeight: 20,
+              marginTop: 18,
+              fontWeight: "400",
+            }}
+          >
+            {step.description}
+          </Text>
+        </Animated.View>
+
+        {/* Progress dots */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 6,
+            paddingBottom: 20,
+          }}
+        >
+          {STEPS.map((_, i) => (
+            <Pressable key={i} onPress={() => setIndex(i)}>
+              <View
+                style={{
+                  width: i === index ? 20 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  backgroundColor: i === index ? "#ffb800" : "#2a2a3a",
+                }}
+              />
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Divider */}
+        <View style={{ height: 1, backgroundColor: "#1e1e2e" }} />
+
+        {/* Navigation row */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          {/* Prev */}
+          <Pressable
+            onPress={goPrev}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: 16,
+              alignItems: "center",
+              opacity: index === 0 ? 0.25 : pressed ? 0.6 : 1,
+              borderRightWidth: 1,
+              borderRightColor: "#1e1e2e",
+            })}
+            disabled={index === 0}
+          >
+            <Text
+              style={{
+                color: "#ffffff",
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 2,
+              }}
+            >
+              ← PREV
+            </Text>
+          </Pressable>
+
+          {/* Close */}
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => ({
+              paddingVertical: 16,
+              paddingHorizontal: 20,
+              alignItems: "center",
+              opacity: pressed ? 0.6 : 1,
+              borderRightWidth: 1,
+              borderRightColor: "#1e1e2e",
+            })}
+          >
+            <Text
+              style={{
+                color: "#3a3a5a",
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 2,
+              }}
+            >
+              CLOSE
+            </Text>
+          </Pressable>
+
+          {/* Next */}
+          <Pressable
+            onPress={goNext}
+            style={({ pressed }) => ({
+              flex: 1,
+              paddingVertical: 16,
+              alignItems: "center",
+              opacity: index === STEPS.length - 1 ? 0.25 : pressed ? 0.6 : 1,
+            })}
+            disabled={index === STEPS.length - 1}
+          >
+            <Text
+              style={{
+                color: "#ffb800",
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 2,
+              }}
+            >
+              NEXT →
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
