@@ -1,13 +1,7 @@
-import { useThemeStore } from "@/store/themeStore";
+import { useTrackingStore } from "@/store/trackingStore";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import {
-  Animated,
-  Pressable,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { Animated, Pressable, Text, View } from "react-native";
 
 const STEPS = [
   {
@@ -36,24 +30,35 @@ const STEPS = [
   },
 ];
 
+// ── Neo-brutalist tokens ──────────────────────────────────────────────────
+const B = {
+  bg: "#eaf4ff",
+  surface: "#ffffff",
+  accent: "#00aaff",
+  black: "#0a0a0a",
+  muted: "#6b6b6b",
+  border: "#0a0a0a",
+  error: "#ff3b30",
+  success: "#00c566",
+};
+
 export default function HelpMaps() {
-  const { theme } = useThemeStore();
   const router = useRouter();
+  const { status, destination, distanceMeters } = useTrackingStore();
+
   const [index, setIndex] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const { width } = useWindowDimensions();
 
   const animateSlide = (direction: "next" | "prev", newIndex: number) => {
-    const toValue = direction === "next" ? -30 : 30;
     Animated.sequence([
       Animated.timing(slideAnim, {
-        toValue,
-        duration: 120,
+        toValue: direction === "next" ? -40 : 40,
+        duration: 100,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 200,
+        duration: 180,
         useNativeDriver: true,
       }),
     ]).start();
@@ -63,124 +68,221 @@ export default function HelpMaps() {
   const goNext = () => {
     if (index < STEPS.length - 1) animateSlide("next", index + 1);
   };
-
   const goPrev = () => {
     if (index > 0) animateSlide("prev", index - 1);
   };
 
   const step = STEPS[index];
 
+  const statusColor =
+    status === "tracking" ? B.success : status === "error" ? B.error : B.muted;
+
+  const statusLabel =
+    status === "tracking"
+      ? "● TRACKING"
+      : status === "error"
+        ? "✕ ERROR"
+        : "○ IDLE";
+
+  // Format distance nicely
+  const distanceText =
+    distanceMeters !== null
+      ? distanceMeters >= 1000
+        ? `${(distanceMeters / 1000).toFixed(2)} km`
+        : `${Math.round(distanceMeters)} m`
+      : null;
+
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.65)",
+        backgroundColor: "rgba(0,0,0,0.55)",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      {/* Card */}
+      {/* Card — hard shadow, no border-radius */}
       <View
         style={{
           width: "88%",
-          backgroundColor: "#0d0d14",
-          borderRadius: 2,
-          overflow: "hidden",
-          borderWidth: 1,
-          borderColor: "#2a2a3a",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.6,
-          shadowRadius: 24,
-          elevation: 20,
+          backgroundColor: B.surface,
+          borderWidth: 3,
+          borderColor: B.border,
+          shadowColor: B.black,
+          shadowOffset: { width: 6, height: 6 },
+          shadowOpacity: 1,
+          shadowRadius: 0,
+          elevation: 8,
         }}
       >
-        {/* Top accent bar */}
-        <View style={{ height: 3, backgroundColor: "#00c8ff" }} />
-
-        {/* Header */}
+        {/* Header bar */}
         <View
           style={{
+            backgroundColor: B.accent,
+            borderBottomWidth: 3,
+            borderBottomColor: B.border,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
-            paddingHorizontal: 20,
-            paddingTop: 18,
-            paddingBottom: 10,
-            borderBottomWidth: 1,
-            borderBottomColor: "#1e1e2e",
           }}
         >
           <Text
             style={{
-              color: "#00c8ff",
-              fontSize: 10,
-              fontWeight: "800",
+              color: B.black,
+              fontSize: 13,
+              fontWeight: "900",
               letterSpacing: 3,
-              textTransform: "uppercase",
             }}
           >
-            Maps Guide
+            MAPS GUIDE
           </Text>
+
+          {/* Live status from Zustand */}
           <Text
             style={{
-              color: "#3a3a5a",
-              fontSize: 10,
-              fontWeight: "700",
-              letterSpacing: 2,
+              color: statusColor,
+              fontSize: 9,
+              fontWeight: "800",
+              letterSpacing: 1.5,
+              backgroundColor: B.black,
+              paddingHorizontal: 8,
+              paddingVertical: 3,
             }}
           >
-            {index + 1} / {STEPS.length}
+            {statusLabel}
           </Text>
         </View>
+
+        {/* Destination + distance banner */}
+        {destination && (
+          <View
+            style={{
+              backgroundColor: B.bg,
+              borderBottomWidth: 2,
+              borderBottomColor: B.border,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                flex: 1,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 9,
+                  color: B.muted,
+                  fontWeight: "900",
+                  letterSpacing: 2,
+                }}
+              >
+                DEST
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: B.black,
+                  fontWeight: "800",
+                  flex: 1,
+                }}
+                numberOfLines={1}
+              >
+                {destination.label
+                  ? destination.label.toUpperCase()
+                  : `${destination.lat.toFixed(4)}, ${destination.lon.toFixed(4)}`}
+              </Text>
+            </View>
+
+            {/* Distance — only shown while tracking */}
+            {distanceText && (
+              <View
+                style={{
+                  backgroundColor: B.black,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  marginLeft: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: B.accent,
+                    fontSize: 11,
+                    fontWeight: "900",
+                    letterSpacing: 1,
+                  }}
+                >
+                  {distanceText}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Step content */}
         <Animated.View
           style={{
             paddingHorizontal: 20,
-            paddingTop: 28,
-            paddingBottom: 20,
+            paddingTop: 24,
+            paddingBottom: 16,
             transform: [{ translateX: slideAnim }],
           }}
         >
-          {/* Icon + step number row */}
           <View
             style={{ flexDirection: "row", alignItems: "flex-start", gap: 14 }}
           >
+            {/* Icon tile */}
             <View
               style={{
                 width: 52,
                 height: 52,
-                backgroundColor: "#111122",
-                borderRadius: 2,
-                borderWidth: 1,
-                borderColor: "#2a2a3a",
+                backgroundColor: B.bg,
+                borderWidth: 3,
+                borderColor: B.border,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Text style={{ fontSize: 24 }}>{step.icon}</Text>
+              <Text style={{ fontSize: 22 }}>{step.icon}</Text>
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text
+              {/* Step badge */}
+              <View
                 style={{
-                  color: "#00c8ff",
-                  fontSize: 11,
-                  fontWeight: "800",
-                  letterSpacing: 2,
+                  alignSelf: "flex-start",
+                  backgroundColor: B.black,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
                   marginBottom: 4,
                 }}
               >
-                STEP {step.number}
-              </Text>
+                <Text
+                  style={{
+                    color: B.accent,
+                    fontSize: 9,
+                    fontWeight: "900",
+                    letterSpacing: 3,
+                  }}
+                >
+                  STEP {step.number}
+                </Text>
+              </View>
+
               <Text
                 style={{
-                  color: "#ffffff",
+                  color: B.black,
                   fontSize: 20,
-                  fontWeight: "800",
-                  letterSpacing: -0.3,
-                  lineHeight: 24,
+                  fontWeight: "900",
+                  letterSpacing: -0.5,
                 }}
               >
                 {step.title}
@@ -188,14 +290,13 @@ export default function HelpMaps() {
             </View>
           </View>
 
-          {/* Description */}
           <Text
             style={{
-              color: "#7a7a9a",
+              color: B.muted,
               fontSize: 13,
               lineHeight: 20,
-              marginTop: 18,
-              fontWeight: "400",
+              marginTop: 16,
+              fontWeight: "500",
             }}
           >
             {step.description}
@@ -208,51 +309,50 @@ export default function HelpMaps() {
             flexDirection: "row",
             justifyContent: "center",
             gap: 6,
-            paddingBottom: 20,
+            paddingBottom: 18,
           }}
         >
           {STEPS.map((_, i) => (
             <Pressable key={i} onPress={() => setIndex(i)}>
               <View
                 style={{
-                  width: i === index ? 20 : 6,
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: i === index ? "#00c8ff" : "#2a2a3a",
+                  width: i === index ? 24 : 8,
+                  height: 8,
+                  backgroundColor: i === index ? B.accent : "#d0d0d0",
+                  borderWidth: 2,
+                  borderColor: B.border,
                 }}
               />
             </Pressable>
           ))}
         </View>
 
-        {/* Divider */}
-        <View style={{ height: 1, backgroundColor: "#1e1e2e" }} />
-
-        {/* Navigation row */}
+        {/* Nav row */}
         <View
           style={{
             flexDirection: "row",
-            alignItems: "center",
+            borderTopWidth: 3,
+            borderTopColor: B.border,
           }}
         >
-          {/* Prev */}
           <Pressable
             onPress={goPrev}
+            disabled={index === 0}
             style={({ pressed }) => ({
               flex: 1,
-              paddingVertical: 16,
+              paddingVertical: 14,
               alignItems: "center",
-              opacity: index === 0 ? 0.25 : pressed ? 0.6 : 1,
-              borderRightWidth: 1,
-              borderRightColor: "#1e1e2e",
+              backgroundColor: pressed ? "#ebebeb" : B.surface,
+              borderRightWidth: 3,
+              borderRightColor: B.border,
+              opacity: index === 0 ? 0.3 : 1,
             })}
-            disabled={index === 0}
           >
             <Text
               style={{
-                color: "#ffffff",
+                color: B.black,
                 fontSize: 11,
-                fontWeight: "700",
+                fontWeight: "900",
                 letterSpacing: 2,
               }}
             >
@@ -260,46 +360,38 @@ export default function HelpMaps() {
             </Text>
           </Pressable>
 
-          {/* Close */}
           <Pressable
             onPress={() => router.back()}
             style={({ pressed }) => ({
-              paddingVertical: 16,
-              paddingHorizontal: 20,
+              paddingVertical: 14,
+              paddingHorizontal: 18,
               alignItems: "center",
-              opacity: pressed ? 0.6 : 1,
-              borderRightWidth: 1,
-              borderRightColor: "#1e1e2e",
+              backgroundColor: pressed ? B.black : B.surface,
+              borderRightWidth: 3,
+              borderRightColor: B.border,
             })}
           >
-            <Text
-              style={{
-                color: "#3a3a5a",
-                fontSize: 11,
-                fontWeight: "700",
-                letterSpacing: 2,
-              }}
-            >
-              CLOSE
+            <Text style={{ color: B.muted, fontSize: 13, fontWeight: "900" }}>
+              ✕
             </Text>
           </Pressable>
 
-          {/* Next */}
           <Pressable
             onPress={goNext}
+            disabled={index === STEPS.length - 1}
             style={({ pressed }) => ({
               flex: 1,
-              paddingVertical: 16,
+              paddingVertical: 14,
               alignItems: "center",
-              opacity: index === STEPS.length - 1 ? 0.25 : pressed ? 0.6 : 1,
+              backgroundColor: pressed ? B.accent : B.surface,
+              opacity: index === STEPS.length - 1 ? 0.3 : 1,
             })}
-            disabled={index === STEPS.length - 1}
           >
             <Text
               style={{
-                color: "#00c8ff",
+                color: B.black,
                 fontSize: 11,
-                fontWeight: "700",
+                fontWeight: "900",
                 letterSpacing: 2,
               }}
             >
