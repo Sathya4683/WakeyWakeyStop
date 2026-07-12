@@ -1,4 +1,4 @@
-# WakeyWakeyStop
+# WakeyWakeyStop (KAIRO)
 
 **Alarms that ring by place, not time.** WakeyWakeyStop wakes you as you *approach* your destination — built for naps on buses, trains and long rides where arrival time is anyone's guess. Pick a spot on the map, choose a wake distance, arm the alarm and close your eyes.
 
